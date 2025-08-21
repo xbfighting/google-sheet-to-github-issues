@@ -45,8 +45,15 @@ jobs:
           GOOGLE_CREDENTIALS_PATH: ./credentials.json
           SPREADSHEET_ID: 1xsWvM39yYO0917zu1ntjV1citrazGnp6maZil42E4eI
           SHEET_NAME: Features
+          SKIP_DELETED: 'true'
+          RESPECT_GITHUB_CHANGES: 'false'
+          SYNC_MODE: 'one-way'
+          SYNC_INTERVAL_MINUTES: '30'
         run: |
           echo "Starting sync process..."
+          echo "Configuration:"
+          echo "  - Skip deleted issues: $SKIP_DELETED"
+          echo "  - Respect GitHub changes: $RESPECT_GITHUB_CHANGES"
           npm run sync
       
       - name: Upload logs
