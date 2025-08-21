@@ -19,7 +19,7 @@ const defaultFieldMappings: FieldMapping[] = [
   { sheet: 'Notes', github: 'body' },
   { sheet: 'Category', github: 'labels', transform: (value: string) => value ? [value] : [] },
   { sheet: 'Launch Phase', github: 'labels', transform: (value: string) => value ? [`phase-${value}`] : [] },
-  { sheet: 'Status', github: 'state', transform: (value: string) => value?.toLowerCase() === 'done' || value?.toLowerCase() === 'completed' ? 'closed' : 'open' }
+  { sheet: 'Status', github: 'state', transform: (value: string) => value?.toLowerCase() === 'done' || value?.toLowerCase() === 'fixed' || value?.toLowerCase() === 'completed' ? 'closed' : 'open' }
 ];
 
 export const config: SyncConfig = {

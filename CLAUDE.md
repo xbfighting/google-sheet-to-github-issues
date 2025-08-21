@@ -39,10 +39,10 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 ### Field Mapping Configuration
 Current mappings in `src/config/index.ts`:
 - `Feature / Issue` → Issue title
-- `Notes` → Issue body  
+- `Notes` → Issue body
 - `Category` → Labels (as-is)
 - `Launch Phase` → Labels (prefixed with "phase-")
-- `Status` → Issue state ("done"/"completed" → closed, else → open)
+- `Status` → Issue state ("Fixed"/"done"/"completed" → closed, else → open)
 
 Mappings support custom transform functions for data conversion.
 
