@@ -111,26 +111,38 @@ export class SyncService {
             const existingIssue = await this.github.getIssue(existingIssueNumber);
             
             if (existingIssue) {
-              const hasChanges = 
-                existingIssue.title !== githubIssue.title ||
-                existingIssue.body !== githubIssue.body ||
-                existingIssue.state !== githubIssue.state ||
-                JSON.stringify(existingIssue.labels?.sort()) !== JSON.stringify(githubIssue.labels?.sort()) ||
-                JSON.stringify(existingIssue.assignees?.sort()) !== JSON.stringify(githubIssue.assignees?.sort());
-
-              if (hasChanges) {
-                await this.github.updateIssue(existingIssueNumber, githubIssue);
-                logger.info(`Updated issue #${existingIssueNumber}: ${githubIssue.title}`);
-                updated++;
-              } else {
-                logger.info(`No changes for issue #${existingIssueNumber}: ${githubIssue.title}`);
+              // Check if we should respect GitHub changes
+              if (this.config.respectGitHubChanges) {
+                logger.info(`Respecting GitHub changes for issue #${existingIssueNumber}: ${githubIssue.title}`);
                 skipped++;
+              } else {
+                const hasChanges = 
+                  existingIssue.title !== githubIssue.title ||
+                  existingIssue.body !== githubIssue.body ||
+                  existingIssue.state !== githubIssue.state ||
+                  JSON.stringify(existingIssue.labels?.sort()) !== JSON.stringify(githubIssue.labels?.sort()) ||
+                  JSON.stringify(existingIssue.assignees?.sort()) !== JSON.stringify(githubIssue.assignees?.sort());
+
+                if (hasChanges) {
+                  await this.github.updateIssue(existingIssueNumber, githubIssue);
+                  logger.info(`Updated issue #${existingIssueNumber}: ${githubIssue.title}`);
+                  updated++;
+                } else {
+                  logger.info(`No changes for issue #${existingIssueNumber}: ${githubIssue.title}`);
+                  skipped++;
+                }
               }
             } else {
-              logger.warn(`Issue #${existingIssueNumber} not found on GitHub, creating new issue`);
-              const newIssueNumber = await this.github.createIssue(githubIssue);
-              this.issueTracker.set(row.id || '', newIssueNumber);
-              created++;
+              // Issue was deleted on GitHub
+              if (this.config.skipDeleted) {
+                logger.warn(`Issue #${existingIssueNumber} was deleted on GitHub, skipping recreation`);
+                skipped++;
+              } else {
+                logger.warn(`Issue #${existingIssueNumber} not found on GitHub, creating new issue`);
+                const newIssueNumber = await this.github.createIssue(githubIssue);
+                this.issueTracker.set(row.id || '', newIssueNumber);
+                created++;
+              }
             }
           } else {
             const existingByTitle = await this.github.findIssueByTitle(githubIssue.title);

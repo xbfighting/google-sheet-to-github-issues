@@ -36,4 +36,7 @@ export interface SyncConfig {
   fieldMappings: FieldMapping[];
   syncMode: 'one-way' | 'two-way';
   syncIntervalMinutes?: number;
+  skipDeleted?: boolean; // Skip recreating deleted issues
+  respectGitHubChanges?: boolean; // Don't overwrite manual changes
+  syncDirection?: 'sheet-to-github' | 'github-to-sheet' | 'bidirectional';
 }

@@ -29,7 +29,10 @@ export const config: SyncConfig = {
   githubRepo: process.env.GITHUB_REPO || '',
   fieldMappings: defaultFieldMappings,
   syncMode: (process.env.SYNC_MODE as 'one-way' | 'two-way') || 'one-way',
-  syncIntervalMinutes: parseInt(process.env.SYNC_INTERVAL_MINUTES || '5', 10)
+  syncIntervalMinutes: parseInt(process.env.SYNC_INTERVAL_MINUTES || '5', 10),
+  skipDeleted: process.env.SKIP_DELETED === 'true',
+  respectGitHubChanges: process.env.RESPECT_GITHUB_CHANGES === 'true',
+  syncDirection: (process.env.SYNC_DIRECTION as 'sheet-to-github' | 'github-to-sheet' | 'bidirectional') || 'sheet-to-github'
 };
 
 export const googleCredentialsPath = path.resolve(

@@ -42,6 +42,10 @@ SHEET_NAME=Sheet1
 # Sync Configuration
 SYNC_INTERVAL_MINUTES=5
 SYNC_MODE=one-way
+
+# Advanced Options (Optional)
+SKIP_DELETED=false              # Set to true to not recreate deleted issues
+RESPECT_GITHUB_CHANGES=false    # Set to true to not overwrite manual changes
 ```
 
 ### 3. Set Up Google Sheets Permissions
@@ -149,6 +153,13 @@ pm2 logs sheet-sync
 # Stop service
 pm2 stop sheet-sync
 ```
+
+## Sync Behavior
+
+See [SYNC_BEHAVIOR.md](docs/SYNC_BEHAVIOR.md) for detailed information about:
+- How deleted issues are handled
+- How modified issues are handled
+- Configuration options for different workflows
 
 ## Troubleshooting
 
