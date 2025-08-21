@@ -1,0 +1,86 @@
+name: Manual Sync
+
+on:
+  workflow_dispatch:
+    inputs:
+      sheet_name:
+        description: 'Sheet name to sync'
+        required: false
+        default: 'Features'
+        type: string
+      sync_interval:
+        description: 'Sync interval in minutes (for watch mode)'
+        required: false
+        default: '30'
+        type: string
+      mode:
+        description: 'Sync mode'
+        required: true
+        default: 'sync'
+        type: choice
+        options:
+          - sync
+          - test
+          - headers
+
+jobs:
+  manual-sync:
+    runs-on: ubuntu-latest
+    
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+      
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: 'npm'
+      
+      - name: Install dependencies
+        run: npm ci
+      
+      - name: Create Google credentials file
+        env:
+          GOOGLE_CREDENTIALS: ${{ secrets.GOOGLE_CREDENTIALS }}
+        run: |
+          echo "$GOOGLE_CREDENTIALS" > ./credentials.json
+      
+      - name: Test connections
+        if: ${{ inputs.mode == 'test' }}
+        env:
+          GITHUB_TOKEN: ${{ secrets.GH_TOKEN }}
+          GITHUB_OWNER: xbfighting
+          GITHUB_REPO: dr-clevens-clinical-advisor-agent
+          GOOGLE_CREDENTIALS_PATH: ./credentials.json
+          SPREADSHEET_ID: 1xsWvM39yYO0917zu1ntjV1citrazGnp6maZil42E4eI
+          SHEET_NAME: ${{ inputs.sheet_name }}
+        run: npm run dev test
+      
+      - name: Show headers
+        if: ${{ inputs.mode == 'headers' }}
+        env:
+          GOOGLE_CREDENTIALS_PATH: ./credentials.json
+          SPREADSHEET_ID: 1xsWvM39yYO0917zu1ntjV1citrazGnp6maZil42E4eI
+          SHEET_NAME: ${{ inputs.sheet_name }}
+        run: npm run dev headers
+      
+      - name: Run sync
+        if: ${{ inputs.mode == 'sync' }}
+        env:
+          GITHUB_TOKEN: ${{ secrets.GH_TOKEN }}
+          GITHUB_OWNER: xbfighting
+          GITHUB_REPO: dr-clevens-clinical-advisor-agent
+          GOOGLE_CREDENTIALS_PATH: ./credentials.json
+          SPREADSHEET_ID: 1xsWvM39yYO0917zu1ntjV1citrazGnp6maZil42E4eI
+          SHEET_NAME: ${{ inputs.sheet_name }}
+          SYNC_INTERVAL_MINUTES: ${{ inputs.sync_interval }}
+        run: npm run sync
+      
+      - name: Upload logs
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: sync-logs-${{ github.run_id }}
+          path: sync.log
+          retention-days: 7
