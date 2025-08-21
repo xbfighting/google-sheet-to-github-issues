@@ -1,113 +1,113 @@
 # Google Sheets to GitHub Issues Sync
 
-自动同步 Google Sheets 数据到 GitHub Issues 的工具。
+A tool for automatically syncing Google Sheets data to GitHub Issues.
 
-## 功能特性
+## Features
 
-- 📊 从 Google Sheets 读取数据并创建/更新 GitHub Issues
-- 🔄 支持单次同步和持续监听模式
-- 🏷️ 自动映射标签、分配人等字段
-- 📝 智能检测重复，避免创建重复 Issue
-- 🔍 根据标题查找已存在的 Issue
+- 📊 Read data from Google Sheets and create/update GitHub Issues
+- 🔄 Support for single sync and continuous monitoring modes
+- 🏷️ Automatic mapping of labels, assignees, and other fields
+- 📝 Smart duplicate detection to avoid creating duplicate issues
+- 🔍 Find existing issues by title
 
-## 快速开始
+## Quick Start
 
-### 1. 安装依赖
+### 1. Install Dependencies
 
 ```bash
 npm install
 ```
 
-### 2. 配置环境变量
+### 2. Configure Environment Variables
 
-创建 `.env` 文件（基于 `.env.example`）：
+Create a `.env` file (based on `.env.example`):
 
 ```bash
 cp .env.example .env
 ```
 
-编辑 `.env` 文件，填入你的配置：
+Edit the `.env` file with your configuration:
 
 ```env
-# GitHub 配置
+# GitHub Configuration
 GITHUB_TOKEN=your_github_personal_access_token
 GITHUB_OWNER=your_github_username_or_org
 GITHUB_REPO=your_repo_name
 
-# Google Sheets 配置
+# Google Sheets Configuration
 GOOGLE_CREDENTIALS_PATH=./creditial/corded-axiom-469714-a0-7462020e4cab.json
 SPREADSHEET_ID=1xsWvM39yYO0917zu1ntjV1citrazGnp6maZil42E4eI
 SHEET_NAME=Sheet1
 
-# 同步配置
+# Sync Configuration
 SYNC_INTERVAL_MINUTES=5
 SYNC_MODE=one-way
 ```
 
-### 3. 设置 Google Sheets 权限
+### 3. Set Up Google Sheets Permissions
 
-确保你的 Google 服务账号邮箱有权访问目标 Sheet：
+Ensure your Google service account email has access to the target Sheet:
 
-1. 打开你的 Google Sheet
-2. 点击右上角"共享"按钮
-3. 添加服务账号邮箱：`sheet-to-github@corded-axiom-469714-a0.iam.gserviceaccount.com`
-4. 设置为"查看者"权限
+1. Open your Google Sheet
+2. Click the "Share" button in the top right
+3. Add the service account email: `sheet-to-github@corded-axiom-469714-a0.iam.gserviceaccount.com`
+4. Set permission to "Viewer"
 
-### 4. 运行程序
+### 4. Run the Program
 
 ```bash
-# 测试连接
+# Test connections
 npm run test
 
-# 查看 Sheet 列名和字段映射
+# View Sheet columns and field mappings
 npm run dev headers
 
-# 执行单次同步
+# Execute single sync
 npm run sync
 
-# 启动持续监听（每5分钟同步一次）
+# Start continuous monitoring (syncs every 5 minutes)
 npm run watch
 ```
 
-## 字段映射
+## Field Mapping
 
-默认字段映射关系：
+Default field mapping relationships:
 
-| Google Sheet 列名 | GitHub Issue 字段 | 说明 |
-|------------------|------------------|------|
-| Title | title | Issue 标题 |
-| Description | body | Issue 描述内容 |
-| Labels | labels | 标签（逗号分隔） |
-| Assignees | assignees | 分配人（逗号分隔） |
-| Status | state | 状态（open/closed） |
+| Google Sheet Column | GitHub Issue Field | Description |
+|--------------------|--------------------|-------------|
+| Title | title | Issue title |
+| Description | body | Issue description |
+| Labels | labels | Labels (comma-separated) |
+| Assignees | assignees | Assignees (comma-separated) |
+| Status | state | Status (open/closed) |
 
-### 自定义字段映射
+### Custom Field Mapping
 
-编辑 `src/config/index.ts` 中的 `defaultFieldMappings` 来自定义映射关系。
+Edit `defaultFieldMappings` in `src/config/index.ts` to customize mapping relationships.
 
-## Sheet 格式示例
+## Sheet Format Example
 
-你的 Google Sheet 应该包含以下列：
+Your Google Sheet should contain the following columns:
 
 | Title | Description | Labels | Assignees | Status |
 |-------|------------|--------|-----------|--------|
-| Bug: 登录失败 | 用户无法登录系统 | bug,urgent | alice,bob | open |
-| 新功能：导出 | 添加数据导出功能 | enhancement | charlie | open |
-| 修复样式问题 | 首页样式错位 | bug,ui | | closed |
+| Bug: Login fails | Users cannot log into the system | bug,urgent | alice,bob | open |
+| Feature: Export | Add data export functionality | enhancement | charlie | open |
+| Fix styling issues | Homepage layout misaligned | bug,ui | | closed |
 
-## 部署选项
+## Deployment Options
 
-### 使用 GitHub Actions（推荐）
+### Using GitHub Actions (Recommended)
 
-创建 `.github/workflows/sync.yml`：
+Create `.github/workflows/sync.yml`:
 
 ```yaml
 name: Sync Google Sheets to GitHub Issues
 
 on:
   schedule:
-    - cron: '*/15 * * * *'  # 每15分钟运行一次
-  workflow_dispatch:  # 允许手动触发
+    - cron: '*/15 * * * *'  # Run every 15 minutes
+  workflow_dispatch:  # Allow manual trigger
 
 jobs:
   sync:
@@ -134,46 +134,46 @@ jobs:
           npm run sync
 ```
 
-### 使用 PM2（服务器部署）
+### Using PM2 (Server Deployment)
 
 ```bash
-# 安装 PM2
+# Install PM2
 npm install -g pm2
 
-# 启动服务
+# Start service
 pm2 start npm --name "sheet-sync" -- run watch
 
-# 查看日志
+# View logs
 pm2 logs sheet-sync
 
-# 停止服务
+# Stop service
 pm2 stop sheet-sync
 ```
 
-## 常见问题
+## Troubleshooting
 
-### 1. Google Sheets API 权限错误
+### 1. Google Sheets API Permission Errors
 
-确保：
-- 服务账号已创建并启用了 Sheets API
-- 服务账号邮箱已添加到 Sheet 的共享用户中
-- 凭证文件路径正确
+Ensure:
+- Service account is created and Sheets API is enabled
+- Service account email is added to Sheet's shared users
+- Credentials file path is correct
 
-### 2. GitHub API 限流
+### 2. GitHub API Rate Limiting
 
-- 使用 Personal Access Token 可获得更高的 API 限额
-- 调整 `SYNC_INTERVAL_MINUTES` 避免频繁请求
+- Use Personal Access Token for higher API limits
+- Adjust `SYNC_INTERVAL_MINUTES` to avoid frequent requests
 
-### 3. 重复创建 Issue
+### 3. Duplicate Issue Creation
 
-程序会：
-1. 首先检查内存中的映射关系
-2. 其次通过标题搜索已存在的 Issue
-3. 只有找不到时才创建新 Issue
+The program will:
+1. First check in-memory mapping relationships
+2. Then search for existing issues by title
+3. Only create new issues when not found
 
-## 日志
+## Logging
 
-同步日志保存在 `sync.log` 文件中，同时输出到控制台。
+Sync logs are saved to `sync.log` file and also output to console.
 
 ## License
 
