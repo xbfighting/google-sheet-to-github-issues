@@ -1,5 +1,6 @@
 import { GoogleSheetsService } from './googleSheets';
 import { GitHubService } from './github';
+import { StorageService } from './storage';
 import { SheetRow, GitHubIssue, SyncConfig } from '../types';
 import winston from 'winston';
 
@@ -20,13 +21,14 @@ const logger = winston.createLogger({
 export class SyncService {
   private googleSheets: GoogleSheetsService;
   private github: GitHubService;
+  private storage: StorageService;
   private config: SyncConfig;
-  private issueTracker: Map<string, number> = new Map();
 
   constructor(config: SyncConfig) {
     this.config = config;
     this.googleSheets = new GoogleSheetsService();
     this.github = new GitHubService(config.githubOwner, config.githubRepo);
+    this.storage = new StorageService();
   }
 
   private transformRow(row: SheetRow): GitHubIssue {
@@ -56,34 +58,11 @@ export class SyncService {
     return issue;
   }
 
-  private async loadIssueTracker(): Promise<void> {
-    try {
-      const sheetData = await this.googleSheets.getSheetData(
-        this.config.spreadsheetId,
-        this.config.sheetName
-      );
-
-      for (const row of sheetData) {
-        if (row.githubIssueNumber) {
-          const issueNumber = parseInt(row.githubIssueNumber, 10);
-          if (!isNaN(issueNumber)) {
-            this.issueTracker.set(row.id || '', issueNumber);
-          }
-        }
-      }
-
-      logger.info(`Loaded ${this.issueTracker.size} existing issue mappings`);
-    } catch (error) {
-      logger.error('Error loading issue tracker:', error);
-    }
-  }
 
   async syncOnce(): Promise<void> {
     logger.info('Starting sync process...');
 
     try {
-      await this.loadIssueTracker();
-
       const sheetData = await this.googleSheets.getSheetData(
         this.config.spreadsheetId,
         this.config.sheetName
@@ -105,7 +84,8 @@ export class SyncService {
             continue;
           }
 
-          const existingIssueNumber = this.issueTracker.get(row.id || '');
+          // Use persistent storage to get existing issue number
+          const existingIssueNumber = this.storage.getIssueNumber(row.id || '');
 
           if (existingIssueNumber) {
             const existingIssue = await this.github.getIssue(existingIssueNumber);
@@ -140,7 +120,7 @@ export class SyncService {
               } else {
                 logger.warn(`Issue #${existingIssueNumber} not found on GitHub, creating new issue`);
                 const newIssueNumber = await this.github.createIssue(githubIssue);
-                this.issueTracker.set(row.id || '', newIssueNumber);
+                this.storage.setMapping(row.id || '', newIssueNumber, githubIssue.title);
                 created++;
               }
             }
@@ -149,12 +129,12 @@ export class SyncService {
             
             if (existingByTitle) {
               logger.info(`Found existing issue #${existingByTitle} by title: ${githubIssue.title}`);
-              this.issueTracker.set(row.id || '', existingByTitle);
+              this.storage.setMapping(row.id || '', existingByTitle, githubIssue.title);
               await this.github.updateIssue(existingByTitle, githubIssue);
               updated++;
             } else {
               const newIssueNumber = await this.github.createIssue(githubIssue);
-              this.issueTracker.set(row.id || '', newIssueNumber);
+              this.storage.setMapping(row.id || '', newIssueNumber, githubIssue.title);
               created++;
             }
           }

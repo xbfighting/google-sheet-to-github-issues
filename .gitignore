@@ -10,3 +10,4 @@ credentials/
 *.pem
 .vscode/
 .idea/
+.issue-mappings.json

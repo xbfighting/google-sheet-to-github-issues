@@ -3,6 +3,7 @@
 import { config, validateConfig } from './config';
 import { SyncService } from './services/sync';
 import { GoogleSheetsService } from './services/googleSheets';
+import { StorageService } from './services/storage';
 
 async function main() {
   console.log('🚀 Google Sheets to GitHub Issues Sync Tool');
@@ -24,6 +25,9 @@ async function main() {
       break;
     case 'headers':
       await showHeaders();
+      break;
+    case 'reset':
+      await resetMappings();
       break;
     default:
       showHelp();
@@ -86,6 +90,14 @@ async function showHeaders() {
   }
 }
 
+async function resetMappings() {
+  console.log('Resetting issue mappings...\n');
+  const storage = new StorageService();
+  storage.clear();
+  console.log('✅ Issue mappings have been reset!');
+  console.log('Next sync will treat all rows as new.');
+}
+
 function showHelp() {
   console.log('Usage: npm run <command>\n');
   console.log('Commands:');
@@ -93,10 +105,12 @@ function showHelp() {
   console.log('  watch     - Start continuous sync with automatic updates');
   console.log('  test      - Test connections to Google Sheets and GitHub');
   console.log('  headers   - Show available columns in your Google Sheet');
+  console.log('  reset     - Reset issue mappings (use when issues are out of sync)');
   console.log('\nExamples:');
   console.log('  npm run sync');
   console.log('  npm run watch');
   console.log('  npm run test');
+  console.log('  npm run dev reset');
 }
 
 main().catch(error => {

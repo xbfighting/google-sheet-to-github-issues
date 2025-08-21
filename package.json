@@ -9,6 +9,7 @@
     "start": "node dist/index.js",
     "sync": "tsx src/index.ts sync",
     "watch": "tsx src/index.ts watch",
+    "reset": "tsx src/index.ts reset",
     "test": "echo \"No tests yet\""
   },
   "keywords": ["google-sheets", "github", "issues", "sync"],
